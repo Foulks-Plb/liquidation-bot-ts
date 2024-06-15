@@ -48,7 +48,7 @@ export interface ISwap1inch {
   tx: {
     from: Address;
     to: Address;
-    data: string;
+    data: Address;
     value: string;
     gas: number;
     gasPrice: string;

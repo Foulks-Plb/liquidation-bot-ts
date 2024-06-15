@@ -1,5 +1,6 @@
+import { BOTMORPHO } from "../abi/BotMorpho";
 import { getSwap } from "./1inch";
-import { account } from "./config";
+import { BOT_ADDRESS, account, publicClient } from "./config";
 import type { IMarket, IPosition, ISwap1inch } from "./types";
 
 const WAD = BigInt(1e18);
@@ -42,7 +43,7 @@ export const checkPositionAndLiquidate = async (
     account.address
   );
 
-  // TODO: verify also the profit int ETH compate to tx cost
+  // TODO: verify also the profit int ETH compare to tx cost
   if (!swap || BigInt(swap?.dstAmount || 0) <= 0) {
     console.log("Swap not profitable");
     return;
@@ -63,19 +64,19 @@ const _liquidate = async (
 ) => {
   console.log("Execute liquidation");
 
-  // const { request } = await publicClient.simulateContract({
-  //   account,
-  //   address: BOT_ADDRESS,
-  //   abi: BOTMORPHO,
-  //   functionName: "morphoLiquidate",
-  //   args: [
-  //     market.uniqueKey,
-  //     position.user.address,
-  //     seizedAssets, // carefull underflow or overflow
-  //     swap.tx.to,
-  //     swap.tx.data,
-  //   ],
-  // });
+  const { request } = await publicClient.simulateContract({
+    account,
+    address: BOT_ADDRESS,
+    abi: BOTMORPHO,
+    functionName: "morphoLiquidate",
+    args: [
+      market.uniqueKey,
+      position.user.address,
+      seizedAssets, // Carefull underflow or overflow
+      swap.tx.to,
+      swap.tx.data,
+    ],
+  });
   // await walletClient.writeContract(request);
 };
 
