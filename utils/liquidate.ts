@@ -49,11 +49,7 @@ export const checkPositionAndLiquidate = async (
     return;
   }
 
-  try {
-    await _liquidate(swap, market, position, seizedAssets);
-  } catch (error) {
-    console.error(error);
-  }
+  _liquidate(swap, market, position, seizedAssets);
 };
 
 const _liquidate = async (
@@ -63,21 +59,24 @@ const _liquidate = async (
   seizedAssets: bigint
 ) => {
   console.log("Execute liquidation");
-
-  const { request } = await publicClient.simulateContract({
-    account,
-    address: BOT_ADDRESS,
-    abi: BOTMORPHO,
-    functionName: "morphoLiquidate",
-    args: [
-      market.uniqueKey,
-      position.user.address,
-      seizedAssets, // Carefull underflow or overflow
-      swap.tx.to,
-      swap.tx.data,
-    ],
-  });
-  // await walletClient.writeContract(request);
+  try {
+    const { request } = await publicClient.simulateContract({
+      account,
+      address: BOT_ADDRESS,
+      abi: BOTMORPHO,
+      functionName: "morphoLiquidate",
+      args: [
+        market.uniqueKey,
+        position.user.address,
+        seizedAssets, // Carefull underflow or overflow
+        swap.tx.to,
+        swap.tx.data,
+      ],
+    });
+    // await walletClient.writeContract(request);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 function toAssetsDown(

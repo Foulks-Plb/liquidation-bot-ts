@@ -6,7 +6,7 @@ import { checkPositionAndLiquidate } from "./liquidate";
 export const verifyPositions = async (market: IMarket) => {
   const positions = await getPositions(market.uniqueKey);
   positions.forEach(async (position: IPosition, i: number) => {
-    // FOR TESTING PURPOSES (avoid spamming call)
+    // FOR TESTING (avoid spamming call)
     if (i > 0) {
       return;
     }
