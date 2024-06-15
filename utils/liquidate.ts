@@ -1,3 +1,5 @@
+import { getSwap } from "./1inch";
+import { account } from "./config";
 import type { IMarket, IPosition } from "./types";
 
 const WAD = BigInt(1e18);
@@ -19,8 +21,38 @@ export const checkPositionAndLiquidate = async (
     )
   );
 
+  const a = toAssetsDown(
+    BigInt(position.borrowShares),
+    BigInt(market.state.borrowAssets),
+    BigInt(market.state.borrowShares)
+  );
+  const b = _wMulDown(a, liquidationIncentiveFactor);
 
-  // liquidate
+  let seizedAssets = _mulDivDown(
+    b,
+    BigInt(market.collateralPrice),
+    ORACLE_PRICE_SCALE
+  );
+  seizedAssets = seizedAssets - seizedAssets / 10n;
+
+  let swap = await getSwap(
+    market.collateralAsset.address,
+    market.loanAsset.address,
+    seizedAssets,
+    account.address
+  );
+
+  // TODO: verify also the profit int ETH compate to tx cost
+  if (BigInt(swap?.dstAmount || 0) <= 0) {
+    console.log("Swap not profitable");
+    return;
+  }
+
+  try {
+    // liquidate
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 function toAssetsDown(

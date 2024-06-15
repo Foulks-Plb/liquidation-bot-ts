@@ -3,6 +3,7 @@ import {
   http,
   type Address,
 } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
 
 export const GRAPH_URL = "https://blue-api.morpho.org/graphql";
@@ -14,3 +15,5 @@ export const publicClient = createPublicClient({
   chain: mainnet,
   transport: http(),
 });
+
+export const account = privateKeyToAccount(process.env.PRIVATE_KEY as Address);
