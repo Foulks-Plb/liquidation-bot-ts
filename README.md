@@ -1,4 +1,4 @@
-# liquidator-bot
+# liquidation-bot-js
 
 To install dependencies:
 
