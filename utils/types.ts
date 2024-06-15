@@ -42,3 +42,15 @@ export interface IPosition {
     address: Address;
   };
 }
+
+export interface ISwap1inch {
+  dstAmount: string;
+  tx: {
+    from: Address;
+    to: Address;
+    data: string;
+    value: string;
+    gas: number;
+    gasPrice: string;
+  };
+}

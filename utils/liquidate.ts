@@ -1,6 +1,6 @@
 import { getSwap } from "./1inch";
 import { account } from "./config";
-import type { IMarket, IPosition } from "./types";
+import type { IMarket, IPosition, ISwap1inch } from "./types";
 
 const WAD = BigInt(1e18);
 const VIRTUAL_ASSETS = BigInt(1e6);
@@ -43,16 +43,40 @@ export const checkPositionAndLiquidate = async (
   );
 
   // TODO: verify also the profit int ETH compate to tx cost
-  if (BigInt(swap?.dstAmount || 0) <= 0) {
+  if (!swap || BigInt(swap?.dstAmount || 0) <= 0) {
     console.log("Swap not profitable");
     return;
   }
 
   try {
-    // liquidate
+    await _liquidate(swap, market, position, seizedAssets);
   } catch (error) {
     console.error(error);
   }
+};
+
+const _liquidate = async (
+  swap: ISwap1inch,
+  market: IMarket,
+  position: IPosition,
+  seizedAssets: bigint
+) => {
+  console.log("Execute liquidation");
+
+  // const { request } = await publicClient.simulateContract({
+  //   account,
+  //   address: BOT_ADDRESS,
+  //   abi: BOTMORPHO,
+  //   functionName: "morphoLiquidate",
+  //   args: [
+  //     market.uniqueKey,
+  //     position.user.address,
+  //     seizedAssets, // carefull underflow or overflow
+  //     swap.tx.to,
+  //     swap.tx.data,
+  //   ],
+  // });
+  // await walletClient.writeContract(request);
 };
 
 function toAssetsDown(
