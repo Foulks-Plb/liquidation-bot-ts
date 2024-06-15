@@ -1,5 +1,5 @@
 import { BOTMORPHO } from "../abi/BotMorpho";
-import { getSwap } from "./1inch";
+import { getQuote, getSwap } from "./1inch";
 import { BOT_ADDRESS, account, publicClient } from "./config";
 import type { IMarket, IPosition, ISwap1inch } from "./types";
 
@@ -43,8 +43,10 @@ export const checkPositionAndLiquidate = async (
     account.address
   );
 
+  const dstAmount = swap?.dstAmount || "0";
   // TODO: verify also the profit int ETH compare to tx cost
-  if (!swap || BigInt(swap?.dstAmount || 0) <= 0) {
+  // let quote = await getQuote(market.loanAsset.address, dstAmount)
+  if (!swap || BigInt(dstAmount) <= 0) {
     console.log("Swap not profitable");
     return;
   }
