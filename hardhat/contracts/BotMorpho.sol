@@ -78,6 +78,8 @@ contract BotMorpho is IMorphoLiquidateCallback {
         bytes calldata swapData
     ) external payable {
         MarketParams memory params = morpho.idToMarketParams(id);
+        // _approveMaxTo(params.loanToken, address(morpho));
+        
         morpho.liquidate(
             params,
             borrower,

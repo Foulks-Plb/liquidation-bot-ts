@@ -10,7 +10,7 @@ import type { IMarket } from "./utils/types";
 import { verifyPositions } from "./utils/positions";
 
 const marketsAddress: Address[] = [
-  "0x698fe98247a40c5771537b5786b2f3f9d78eb487b4ce4d75533cd0e94d88a115",
+  "0xcec858380cba2d9ca710fce3ce864d74c3f620d53826f69d08508902e09be86f",
 ];
 
 // Initialize the markets mapping and set in cache

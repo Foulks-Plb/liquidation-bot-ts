@@ -1,25 +1,26 @@
 import { BOTMORPHO } from "../abi/BotMorpho";
 import { getQuote, getSwap } from "./1inch";
-import { BOT_ADDRESS, account, publicClient } from "./config";
+import { BOT_ADDRESS, account, publicClient, walletClient } from "./config";
 import type { IMarket, IPosition, ISwap1inch } from "./types";
-
-const WAD = BigInt(1e18);
-const VIRTUAL_ASSETS = BigInt(1e6);
-const VIRTUAL_SHARES = BigInt(1);
-const LIQUIDATION_CURSOR = BigInt(0.3 * 10 ** 18);
-const MAX_LIQUIDATION_INCENTIVE_FACTOR = BigInt(1.15e18);
-const ORACLE_PRICE_SCALE = BigInt(1e36);
+import {
+  LIQUIDATION_CURSOR,
+  MAX_LIQUIDATION_INCENTIVE_FACTOR,
+  ORACLE_PRICE_SCALE,
+  WAD,
+  min,
+  mulDivDown,
+  toAssetsDown,
+  wDivDown,
+  wMulDown,
+} from "./utils";
 
 export const checkPositionAndLiquidate = async (
   position: IPosition,
   market: IMarket
 ) => {
-  const liquidationIncentiveFactor = _min(
+  const liquidationIncentiveFactor = min(
     MAX_LIQUIDATION_INCENTIVE_FACTOR,
-    _wDivDown(
-      WAD,
-      WAD - _wMulDown(LIQUIDATION_CURSOR, WAD - BigInt(market.lltv))
-    )
+    wDivDown(WAD, WAD - wMulDown(LIQUIDATION_CURSOR, WAD - BigInt(market.lltv)))
   );
 
   const a = toAssetsDown(
@@ -27,14 +28,14 @@ export const checkPositionAndLiquidate = async (
     BigInt(market.state.borrowAssets),
     BigInt(market.state.borrowShares)
   );
-  const b = _wMulDown(a, liquidationIncentiveFactor);
+  const b = wMulDown(a, liquidationIncentiveFactor);
 
-  let seizedAssets = _mulDivDown(
+  let seizedAssets = mulDivDown(
     b,
-    BigInt(market.collateralPrice),
-    ORACLE_PRICE_SCALE
+    ORACLE_PRICE_SCALE,
+    BigInt(market.collateralPrice)
   );
-  seizedAssets = seizedAssets - seizedAssets / 10n;
+  seizedAssets = seizedAssets - seizedAssets / 100n; // 1% to avoid error underflow or overflow
 
   let swap = await getSwap(
     market.collateralAsset.address,
@@ -75,45 +76,8 @@ const _liquidate = async (
         swap.tx.data,
       ],
     });
-    // await walletClient.writeContract(request);
+    await walletClient.writeContract(request);
   } catch (error) {
     console.error(error);
   }
 };
-
-function toAssetsDown(
-  shares: bigint,
-  totalAssets: bigint,
-  totalShares: bigint
-): bigint {
-  const totalAssetsWithVirtual = totalAssets + VIRTUAL_ASSETS;
-  const totalSharesWithVirtual = totalShares + VIRTUAL_SHARES;
-
-  return _mulDivDown(shares, totalAssetsWithVirtual, totalSharesWithVirtual);
-}
-
-function _mulDivDown(x: bigint, y: bigint, d: bigint): bigint {
-  const xy = x * y;
-
-  return xy / d;
-}
-
-function _mulDivUp(x: bigint, y: bigint, d: bigint): bigint {
-  const xy = x * y;
-
-  const add = xy + d - BigInt(1);
-
-  return add / d;
-}
-
-function _wMulDown(a: bigint, b: bigint): bigint {
-  return (a * b) / WAD;
-}
-
-function _wDivDown(a: bigint, b: bigint): bigint {
-  return (a * WAD) / b;
-}
-
-function _min(a: bigint, b: bigint): bigint {
-  return a < b ? a : b;
-}
